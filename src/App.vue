@@ -2,6 +2,7 @@
   <v-app>
     <v-main>
       <v-container>
+        <!-- ターン管理 -->
         <v-row class="mb-4">
           <v-col>
             <v-btn @click="decreaseTurn">ターン削除</v-btn>
@@ -13,6 +14,20 @@
             <v-chip>{{ currentTurn }}</v-chip>
           </v-col>
         </v-row>
+        <!-- ステータス表示 -->
+        <v-row class="mb-4">
+          <v-col>
+            <v-card>
+              <v-card-title>現在ステータス</v-card-title>
+              <v-card-text>
+                Vo: {{ status.Vo }}<br>
+                Da: {{ status.Da }}<br>
+                Vi: {{ status.Vi }}
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        <!-- LessonComponentのリスト -->
         <v-row>
           <v-col>
             <div v-for="turn in turns" :key="turn">
@@ -23,14 +38,6 @@
             </div>
           </v-col>
         </v-row>
-        <!-- 計算結果の表示 -->
-        <v-card v-if="statusIncrease !== null">
-          <v-card-title>Calculated Status Increase</v-card-title>
-          <v-card-text>
-            レッスン: {{ selectedLesson }}<br>
-            上昇値: {{ statusIncrease }}
-          </v-card-text>
-        </v-card>
       </v-container>
     </v-main>
   </v-app>
@@ -47,8 +54,12 @@ export default {
     return {
       currentTurn: 1,
       turns: [1], // 初期のターンは1
-      selectedLesson: null,
-      statusIncrease: null,
+      status: {
+        Vo: 0,
+        Da: 0,
+        Vi: 0
+      },
+      lessons: {} // 各ターンのレッスンデータを保存
     };
   },
   methods: {
@@ -60,13 +71,35 @@ export default {
       if (this.currentTurn > 1) {
         this.turns.pop();
         this.currentTurn -= 1;
+        // 最後のターンのレッスンを削除
+        delete this.lessons[this.currentTurn];
+        this.calculateTotalStatus();
       }
     },
-    handleLessonSelected({ lesson, value }) {
-      this.selectedLesson = lesson;
-      this.statusIncrease = value;
+    handleLessonSelected({ turn, lesson, value }) {
+      // 各ターンのレッスンデータを保存
+      this.lessons[turn] = { lesson, value };
+      this.calculateTotalStatus();
     },
-  },
+    calculateTotalStatus() {
+      // ステータスをリセット
+      this.status.Vo = 0;
+      this.status.Da = 0;
+      this.status.Vi = 0;
+      
+      // レッスンデータを集計
+      for (const key in this.lessons) {
+        const lessonData = this.lessons[key];
+        if (lessonData.lesson.includes('Vo')) {
+          this.status.Vo += lessonData.value;
+        } else if (lessonData.lesson.includes('Da')) {
+          this.status.Da += lessonData.value;
+        } else if (lessonData.lesson.includes('Vi')) {
+          this.status.Vi += lessonData.value;
+        }
+      }
+    }
+  }
 };
 </script>
 
