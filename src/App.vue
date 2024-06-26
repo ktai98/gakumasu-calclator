@@ -70,9 +70,8 @@ export default {
     decreaseTurn() {
       if (this.currentTurn > 1) {
         this.turns.pop();
-        this.currentTurn -= 1;
-        // 最後のターンのレッスンを削除
         delete this.lessons[this.currentTurn];
+        this.currentTurn -= 1;
         this.calculateTotalStatus();
       }
     },
